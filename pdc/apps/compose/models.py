@@ -7,7 +7,6 @@ from django.db import models, connection, transaction
 from django.db.utils import IntegrityError
 
 from pdc.apps.common import models as common_models
-from pdc.apps.package import models as package_models
 from pdc.apps.common.hacks import add_returning
 
 from productmd import composeinfo
@@ -140,7 +139,8 @@ class Compose(models.Model):
         """
         Find all RPMs with given name associated with this compose.
         """
-        return (package_models.RPM.objects.filter(name=rpm_name)
+        from pdc.apps.package.models import RPM
+        return (RPM.objects.filter(name=rpm_name)
                 .filter(composerpm__variant_arch__variant__compose=self)
                 .distinct())
 
