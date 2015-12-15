@@ -17,7 +17,7 @@ from pdc.apps.common.validators import validate_md5, validate_sha1, validate_sha
 from pdc.apps.common.hacks import add_returning, parse_epoch_version
 from pdc.apps.common.constants import ARCH_SRC
 from pdc.apps.release.models import Release
-from pdc.apps.compose.models import ComposeAcceptanceTestingState, _get_untested
+from pdc.apps.compose.models import ComposeAcceptanceTestingState
 
 
 class RPM(models.Model):
@@ -308,7 +308,8 @@ class BuildImage(models.Model):
     rpms                = models.ManyToManyField(RPM)
     archives            = models.ManyToManyField(Archive)
     releases            = models.ManyToManyField(Release)
-    test_result         = models.ForeignKey(ComposeAcceptanceTestingState, default=_get_untested)
+    test_result         = models.ForeignKey(ComposeAcceptanceTestingState,
+                                            default=ComposeAcceptanceTestingState.get_untested)
 
     class Meta:
         unique_together = (

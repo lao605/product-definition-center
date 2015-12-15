@@ -1614,7 +1614,7 @@ class BuildImageRTTTestsRESTTestCase(TestCaseWithChangeSetMixin, APITestCase):
         response = self.client.delete(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_filter_build_image_test_results(self):
+    def test_filter_build_image_test_results_with_test_result(self):
         url = reverse('buildimagertttests-list')
         response = self.client.get(url + '?test_result=untested', format='json')
         untested_count = response.data['count']
@@ -1629,6 +1629,42 @@ class BuildImageRTTTestsRESTTestCase(TestCaseWithChangeSetMixin, APITestCase):
         response = self.client.get(url + '?test_result=failed', format='json')
         untested_count = response.data['count']
         self.assertEqual(0, untested_count)
+
+    def test_filter_build_image_test_results_with_test_nvr_and_test_result(self):
+        url = reverse('buildimagertttests-list')
+        response = self.client.get(url + '?build_nvr=my-server-docker-1.0-27', format='json')
+        count = response.data['count']
+        self.assertEqual(count, 1)
+
+        url = reverse('buildimagertttests-list')
+        response = self.client.get(url + '?build_nvr=fake_nvr', format='json')
+        count = response.data['count']
+        self.assertEqual(count, 0)
+
+        url = reverse('buildimage-list')
+        data = {'image_id': 'my-server-docker-1.0-27',
+                'image_format': 'iso',
+                'md5': "0123456789abcdef0123456789abcdef",
+                'rpms': [{'name': 'new_rpm', 'epoch': 0, 'version': '1.0.0',
+                          'release': '1', 'arch': 'src', 'srpm_name': 'new_srpm'}]
+                }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        url = reverse('buildimagertttests-list')
+        response = self.client.get(url + '?build_nvr=my-server-docker-1.0-27', format='json')
+        count = response.data['count']
+        self.assertEqual(count, 2)
+
+        url = reverse('buildimagertttests-list')
+        response = self.client.get(url + '?build_nvr=my-server-docker-1.0-27&test_result=untested', format='json')
+        count = response.data['count']
+        self.assertEqual(count, 2)
+
+        url = reverse('buildimagertttests-list')
+        response = self.client.get(url + '?build_nvr=my-server-docker-1.0-27&test_result=passed', format='json')
+        count = response.data['count']
+        self.assertEqual(count, 0)
 
     def test_patch_build_image_test_results(self):
         url = reverse('buildimagertttests-list')
